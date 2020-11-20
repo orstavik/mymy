@@ -14,9 +14,18 @@ A purer Myers diff in javascript.
 ## HowTo: use it?
 
 ```javascript
-import {myersDiff} from 'https://cdn.jsdelivr.net/gh/orstavik/mymy/src/myerLifting.js';
-import {myersDiff} from "../src/myerLifting2.js";
-import {makeDictDiff, inverseDiff, convert, compress, extract} from "https://cdn.jsdelivr.net/gh/orstavik/mymy/src/myerDict.js";
+import {myersDiff} from 'https://cdn.jsdelivr.net/gh/orstavik/mymy@first_draft/src/myerLifting2.js';
+import {makeDictDiff, inverseDiff, convert, compress, extract} from "https://cdn.jsdelivr.net/gh/orstavik/mymy@first_draft/src/myerDict.js";
 
+
+const ref = 'hello world!!';
+const tar = 'hello sunshine!';
+const editOps = myersDiff(tar, ref);
+const diff = makeDictDiff(editOps, tar, ref);
+const tar2 = convert(diff);
+const inverse = inverseDiff(diff);
+const ref2 = convert(inverse);
+const minDiff = compress(diff);
+const maxDiff = extract(minDiff, ref);
+[ref, tar, editOps, diff, tar2, inverse, ref2, minDiff, maxDiff].forEach(o => console.log(JSON.stringify(o)));
 ```
-``
