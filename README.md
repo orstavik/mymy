@@ -1,7 +1,8 @@
-# mymy
+# Oh, `mymy`..
+
 A purer Myers diff in javascript. 
 
-## Why mymy?
+## Why `mymy`?
 
 1. Cleaner result by removing 'match-in-the-middle` problems. 'match-in-the-middle` problems are small text fragments (ie. individual characters or words) that needlessly breaking up an otherwise clear replacement.
 
