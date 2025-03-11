@@ -6,7 +6,7 @@ function myers(ref, tar) {
   while (tar[n] === ref[n])
     n++;
 
-  const res = [{0: n}];
+  const res = [{ 0: n }];
   for (let d = 1; d < 10000; d++) {
     res[d] = {};
     for (let k = -d; k <= d; k += 2) {
@@ -109,6 +109,9 @@ function matchInTheMiddleTooSmall(ops) {
 }
 
 export function myersDiff(tar, ref) {
+  if (!tar && !ref) return [];
+  if (!tar) return [[-1, 0, '+', ref.length, ref]];
+  if (!ref) return [[0, -1, '-', tar.length, tar]];
   const [map, d, k] = myers(ref, tar);
   const coords = makeInsertDeleteSnake(map, d, k);
   let ops = splitMatchInSnake(coords);
