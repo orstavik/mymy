@@ -44,20 +44,23 @@ function splitMatchInSnake(coords) {
   let last = [0, 0, ' ', coords[0].a]
   const output = [last];
   for (let i = 1; i < coords.length; i++) {
-    const { a: oneX, b: oneY } = coords[i - 1];
-    const { a: twoX, b: twoY } = coords[i];
-    const distX = twoX - oneX;
-    const distY = twoY - oneY;
+    const one = coords[i-1], two = coords[i];
+    // const { a: oneX, b: oneY } = coords[i - 1];
+    // const { a: twoX, b: twoY } = coords[i];
+    const distX = two.a - one.a;
+    const distY = two.b - one.b;
     const min = Math.min(distX, distY);
     const editType = distX > distY ? '-' : '+';
     if (last[2] === editType)
       last[3] += 1;
     else {
-      last = editType === '-' ? [oneX, -1, '-', 1] : [-1, oneY, '+', 1];
+      //i think we have to use two as the object here.. always two..
+      last = editType === '-' ? [one.a, -1, '-', 1] : [-1, one.b, '+', 1];
       output.push(last);
     }
-    if (min)
-      output.push(last = [twoX - min, twoY - min, ' ', min]);
+    if (min){
+      output.push(last = [two.a - min, two.b - min, ' ', min]);
+    }
   }
   if (output[0][3] === 0) //removes the first match if it is empty
     output.shift();
