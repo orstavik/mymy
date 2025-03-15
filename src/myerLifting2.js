@@ -27,14 +27,13 @@ function myers(ref, tar) {
   }
 }
 
-//converts d,k to x,y
 function makeInsertDeleteSnake(res, d, k) {
   const coords = Array(d + 1);
   const first = res[0][0];
-  coords[0] = [first, first];
+  coords[0] = { a: first, b: first };
   for (; d > 0; d--) {
-    const x = res[d][k];
-    coords[d] = [x, x - k];
+    const a = res[d][k];
+    coords[d] = { a, b: a - k };
     res[d - 1][k - 1] >= res[d - 1][k + 1] || res[d - 1][k + 1] === undefined ? k-- : k++;
   }
   return coords;
@@ -42,10 +41,11 @@ function makeInsertDeleteSnake(res, d, k) {
 
 //splits the matching sequences away from the insert/delete steps, and then merges sequences of inserts and deletes
 function splitMatchInSnake(coords) {
-  const output = [[0, 0, ' ', coords[0][0]]];
+  let last = [0, 0, ' ', coords[0].a]
+  const output = [last];
   for (let i = 1; i < coords.length; i++) {
-    const [oneX, oneY] = coords[i - 1];
-    const [twoX, twoY] = coords[i];
+    const { a: oneX, b: oneY } = coords[i - 1];
+    const { a: twoX, b: twoY } = coords[i];
     const distX = twoX - oneX;
     const distY = twoY - oneY;
     const min = Math.min(distX, distY);
@@ -53,11 +53,11 @@ function splitMatchInSnake(coords) {
     if (output[output.length - 1][2] === editType)
       output[output.length - 1][3] += 1;
     else {
-      const edit = editType === '-' ? [oneX, -1, '-', 1] : [-1, oneY, '+', 1];
-      output.push(edit);
+      last = editType === '-' ? [oneX, -1, '-', 1] : [-1, oneY, '+', 1];
+      output.push(last);
     }
     if (min)
-      output.push([twoX - min, twoY - min, ' ', min]);
+      output.push(last = [twoX - min, twoY - min, ' ', min]);
   }
   if (output[0][3] === 0) //removes the first match if it is empty
     output.shift();
