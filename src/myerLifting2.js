@@ -71,10 +71,11 @@ function getS(op, tar, ref) {
 //moves matches to the end if possible,
 function matchInTheMiddleStandBack(ops) {
   const res = [];
-  for (let i = 0; i < ops.length; i++) {
+  let i = 0; 
+  for (; i < ops.length-2; i++) {
     const [oneIndex, oneIndex2, oneOp, oneLength, oneStr] = ops[i];
-    const [twoIndex, twoIndex2, twoOp, twoLength, twoStr] = ops[i + 1] || [];
-    const [threeIndex, threeIndex2, threeOp, threeLength, threeStr] = ops[i + 2] || [];
+    const [twoIndex, twoIndex2, twoOp, twoLength, twoStr] = ops[i + 1];
+    const [threeIndex, threeIndex2, threeOp, threeLength, threeStr] = ops[i + 2];
     if (oneOp === '+' && twoOp === ' ' && threeOp === '+' && threeStr.endsWith(twoStr)) {
       res.push([oneIndex, oneIndex2, '+', oneLength + threeLength, (oneStr + twoStr + threeStr).substr(0, oneLength + threeLength)]);
       res.push([twoIndex, twoIndex2 + threeStr.length, ' ', twoLength, twoStr]);
@@ -83,18 +84,21 @@ function matchInTheMiddleStandBack(ops) {
       res.push(ops[i]);
     }
   }
+  while(i < ops.length)
+    res.push(ops[i++]);
   return res;
 }
 
 //changes insignificant matches in between two identical operations
 function matchInTheMiddleTooSmall(ops) {
   const res = [];
-  for (let i = 0; i < ops.length; i++) {
+  let i = 0;
+  for (; i < ops.length-4; i++) {
     const [oneIndex, oneIndex2, oneOp, oneLength, oneStr] = ops[i];
-    const [twoIndex, twoIndex2, twoOp, twoLength, twoStr] = ops[i + 1] || [];
-    const [threeIndex, threeIndex2, threeOp, threeLength, threeStr] = ops[i + 2] || [];
-    const [fourIndex, fourIndex2, fourOp, fourLength, fourStr] = ops[i + 3] || [];
-    const [fiveIndex, fiveIndex2, fiveOp, fiveLength, fiveStr] = ops[i + 4] || [];
+    const [twoIndex, twoIndex2, twoOp, twoLength, twoStr] = ops[i + 1];
+    const [threeIndex, threeIndex2, threeOp, threeLength, threeStr] = ops[i + 2];
+    const [fourIndex, fourIndex2, fourOp, fourLength, fourStr] = ops[i + 3];
+    const [fiveIndex, fiveIndex2, fiveOp, fiveLength, fiveStr] = ops[i + 4];
     const totalLength = oneLength + twoLength + threeLength + fourLength + fiveLength;
     //todo do the same for insert, match, insert and delete, match, delete too. wrapping a small match in the middle. They a small delete, big insert, or big delete, small insert (ie. a simpler change) instead.
     if (oneOp === '-' && twoOp === '+' && threeOp === ' ' && fourOp === '-' && fiveOp === '+' && threeLength <= 16 && threeLength < (totalLength / 3)) {
@@ -105,6 +109,8 @@ function matchInTheMiddleTooSmall(ops) {
       res.push(ops[i]);
     }
   }
+  while(i < ops.length)
+    res.push(ops[i++]);
   return res;
 }
 
@@ -115,7 +121,7 @@ export function myersDiff(tar, ref) {
   const [map, d, k] = myers(ref, tar);
   const coords = makeInsertDeleteSnake(map, d, k);
   let ops = splitMatchInSnake(coords);
-  ops.forEach(op => op.push(getS(op, tar, ref)));//adding strings
+  ops.forEach(op => op[4] = getS(op, tar, ref));//adding strings
   ops = matchInTheMiddleStandBack(ops);
   ops = matchInTheMiddleTooSmall(ops);
   return ops;
