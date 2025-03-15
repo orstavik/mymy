@@ -50,8 +50,8 @@ function splitMatchInSnake(coords) {
     const distY = twoY - oneY;
     const min = Math.min(distX, distY);
     const editType = distX > distY ? '-' : '+';
-    if (output[output.length - 1][2] === editType)
-      output[output.length - 1][3] += 1;
+    if (last[2] === editType)
+      last[3] += 1;
     else {
       last = editType === '-' ? [oneX, -1, '-', 1] : [-1, oneY, '+', 1];
       output.push(last);
