@@ -1,15 +1,3 @@
-class Op {
-  constructor(type, a, b) { this.type = type; this.a = a; this.b = b; }
-  update(a, b) { this.a = a + this.a; this.b &&= b + this.b; }
-
-  static bSide(ops) {
-    return ops.map(op => op.type == "Equal" ? op.a : op.b ?? '').join("");
-  }
-  static aSide(ops) {
-    return ops.map(op => op.a).join("");
-  }
-}
-
 function customLevenshtein(A, B) {
   const height = A.length;
   const width = B.length;
@@ -22,34 +10,32 @@ function customLevenshtein(A, B) {
   return table;
 }
 
-function backtrackToOps(table, A, B) {
+export function diff(A, B) {
+  const table = customLevenshtein(A, B);
   const res = [];
   let now, i = table.length - 1, j = table[0].length - 1;
   while (i > 0 && j > 0 && (now = table[i][j])) {
-    const counter = now & 0xFF;
-    if (counter) {
-      i -= counter;
-      j -= counter;
-      res.unshift(new Op("Equal", A.substring(i, i + counter)));
-    }
-    else {
+    const equals = now & 0xFF;
+    if (equals) {
+      i -= equals;
+      j -= equals;
+      const str = A.slice(i, i + equals);
+      res.unshift({ a: str, b: str });
+    } else {
       const topLeft = table[i - 1][j - 1], top = table[i - 1][j], left = table[i][j - 1];
-      const update = res[0] && res[0].type == "Replace";
-      if (topLeft >= top && topLeft >= left)
-        update ? res[0].update(A[--i], B[--j]) : res.unshift(new Op("Replace", A[--i], B[--j]));
-      else if (top >= left)
-        update ? res[0].update(A[--i], "") : res.unshift(new Op("Replace", A[--i], ""));
-      else
-        update ? res[0].update("", B[--j]) : res.unshift(new Op("Replace", "", B[--j]));
+      const a = (topLeft >= top && topLeft >= left) || top >= left ? A[--i] : "";
+      const b = (topLeft >= top && topLeft >= left) || left > top ? B[--j] : "";
+      res[0]?.a == res[0]?.b ? res.unshift({ a, b }) :
+        (res[0].a = a + res[0].a, res[0].b = b + res[0].b);
     }
   }
-  if (j && i) res.unshift(new Op("Replace", A.substring(0, i), B.substring(0, j)));
-  else if (j) res.unshift(new Op("Replace", "", B.substring(0, j)));
-  else if (i) res.unshift(new Op("Replace", A.substring(0, i), ""));
+  if (i || j)
+    res.unshift({ a: A.slice(0, i), b: B.slice(0, j) });
   return res;
 }
 
-function printTable(str1, str2, resultTable) {
+function printTable(str1, str2) {
+  const resultTable = customLevenshtein(str1, str2);
   const formatCell = num => `${num >> 22}|${(num >> 8) & 0x3FFF}|${num & 0xFF}`;
   const printTable = [
     ["%", ...str2.split("")],
@@ -58,17 +44,18 @@ function printTable(str1, str2, resultTable) {
   console.table(printTable);
 }
 
-// Example usage:
 function test(str1, str2) {
-  const table = customLevenshtein(str1, str2);
-  const ops = backtrackToOps(table, str1, str2);
-  const _str1 = Op.aSide(ops);
-  const _str2 = Op.bSide(ops);
-  console.log(str1 == _str1, str1, _str1);
-  console.log(str2 == _str2, str2, _str2);
-  // for (const op of ops)
-  //   console.log(op, op.a, op.b);
-  // printTable(str1, str2, table);
+  const ops = diff(str1, str2);
+  console.log(
+    `diff(${str1},${str2}): ${str1 == ops.map(op => op.a).join("")}, ${str2 == ops.map(op => op.b).join("")}`);
+}
+
+function debug(str1, str2){
+  test(str1, str2);
+  const ops = diff(str1, str2);
+  for (const op of ops)
+    console.log(op, op.a, op.b);
+  printTable(str1, str2);
 }
 
 test("kitten", "sitting");
